@@ -147,6 +147,20 @@ object ScalaLocaleCodeGen {
         if n.text.nonEmpty
       } yield readCalendarPatterns(n)
 
+    val decimalPatterns = (for {
+        n <- xml \ "numbers" \\ "decimalFormats"
+        if (n \ "@numberSystem").text == "latn"
+        d <- n \ "decimalFormatLength"
+        if (d \ "@type").text.isEmpty
+      } yield d \ "decimalFormat" \ "pattern").headOption.map(_.text)
+
+    val percentagePatterns = (for {
+        n <- xml \ "numbers" \\ "percentFormats"
+        if (n \ "@numberSystem").text == "latn"
+        d <- n \ "percentFormatLength"
+        if (d \ "@type").text.isEmpty
+      } yield d \ "percentFormat" \ "pattern").headOption.map(_.text)
+
     // Find out the default numeric system
     val defaultNS = Option((xml \ "numbers" \ "defaultNumberingSystem").text)
       .filter(_.nonEmpty).filter(ns.contains)
@@ -161,7 +175,7 @@ object ScalaLocaleCodeGen {
     val symbols = (xml \ "numbers" \\ "symbols").flatMap { s =>
       // http://www.unicode.org/reports/tr35/tr35-numbers.html#Numbering_Systems
       // By default, number symbols without a specific numberSystem attribute
-      // are assumed to be used for the "latn" numbering system, which i
+      // are assumed to be used for the "latn" numbering system, which uses
       // western (ASCII) digits
       val nsAttr = Option((s \ "@numberSystem").text).filter(_.nonEmpty)
       val sns = nsAttr.flatMap(ns.get).getOrElse(latn)
@@ -193,7 +207,8 @@ object ScalaLocaleCodeGen {
     val fileName = f.getName.substring(0, f.getName.lastIndexOf("."))
 
     XMLLDML(XMLLDMLLocale(language, territory, variant, script), fileName,
-      defaultNS.flatMap(ns.get), symbols.toMap, gregorian.flatten.headOption, gregorianDatePatterns.flatten.headOption)
+      defaultNS.flatMap(ns.get), symbols.toMap, gregorian.flatten.headOption,
+      gregorianDatePatterns.flatten.headOption, NumberPatterns(decimalPatterns, percentagePatterns))
   }
 
   // Note this must be a def or there could be issues with concurrency

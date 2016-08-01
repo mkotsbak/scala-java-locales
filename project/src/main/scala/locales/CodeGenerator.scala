@@ -29,6 +29,7 @@ object CodeGenerator {
       IMPORT("locales.cldr.Symbols"),
       IMPORT("locales.cldr.CalendarSymbols"),
       IMPORT("locales.cldr.CalendarPatterns"),
+      IMPORT("locales.cldr.NumberPatterns"),
       IMPORT("locales.cldr.data.numericsystems._")) ++ objectBlock
     ) inPackage "locales.cldr.data"
   }
@@ -53,6 +54,7 @@ object CodeGenerator {
     val ldmlNumericSym = getModule("Symbols")
     val ldmlCalendarSym = getModule("CalendarSymbols")
     val ldmlCalendarPatternsSym = getModule("CalendarPatterns")
+    val ldmlNumberPatternsSym = getModule("NumberPatterns")
     val ldmlLocaleSym = getModule("LDMLLocale")
 
     val parent = findParent(root, langs, ldml, parentLocales).fold(NONE)(v => SOME(REF(v)))
@@ -100,8 +102,14 @@ object CodeGenerator {
       Apply(ldmlCalendarPatternsSym, dates, times)
     }.fold(NONE)(s => SOME(s))
 
+    val np = {
+      val decimal = ldml.numberPatterns.decimalFormat.fold(NONE)(s => SOME(LIT(s)))
+      val percent = ldml.numberPatterns.percentFormat.fold(NONE)(s => SOME(LIT(s)))
+      Apply(ldmlNumberPatternsSym, decimal, percent)
+    }
+
     OBJECTDEF(ldml.scalaSafeName) withParents Apply(ldmlSym, parent,
-      ldmlLocaleTree, defaultNS, LIST(numericSymbols), gc, gcp)
+      ldmlLocaleTree, defaultNS, LIST(numericSymbols), gc, gcp, np)
   }
 
   def metadata(codes: List[String], languages: List[String], scripts: List[String]): Tree = {

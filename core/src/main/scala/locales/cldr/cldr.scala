@@ -20,6 +20,8 @@ case class CalendarSymbols(months: List[String], shortMonths: List[String],
 
 case class CalendarPatterns(datePatterns: Map[Int, String], timePatterns: Map[Int, String])
 
+case class NumberPatterns(decimalPattern: Option[String], percentPattern: Option[String])
+
 /**
  * Interfaces describing an LDML Locale
  */
@@ -31,7 +33,8 @@ case class LDMLLocale(language: String, territory: Option[String],
  */
 case class LDML(parent: Option[LDML], locale: LDMLLocale,
     defaultNS: Option[NumberingSystem], digitSymbols: List[Symbols] = Nil,
-    calendarSymbols: Option[CalendarSymbols], calendarPatterns: Option[CalendarPatterns]) {
+    calendarSymbols: Option[CalendarSymbols], calendarPatterns: Option[CalendarPatterns],
+    numberPatterns: NumberPatterns) {
 
   def languageTag: String = toLocale.toLanguageTag
 
